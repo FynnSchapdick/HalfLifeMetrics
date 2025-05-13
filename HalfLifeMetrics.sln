@@ -7,6 +7,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{C1732953-47B3-43B3-AE16-14AC810F7DFE}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\docker-publish.yml = .github\workflows\docker-publish.yml
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Global
