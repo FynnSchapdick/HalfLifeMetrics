@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./source/HalfLifeStats.Server/Dockerfile
+          file: ./source/HalfLifeMetrics.Server/Dockerfile
           push: true
           tags: |
             ${{ steps.vars.outputs.tagged }}
