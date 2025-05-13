@@ -445,5 +445,5 @@ Comment
 # Rider
 .idea/
 
-# add launchsettings.json to .gitignore
-source/HalfLifeMetrics.Server/Properties/launchSettings.json
+**/launchSettings.json
+
