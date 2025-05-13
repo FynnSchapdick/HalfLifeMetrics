@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace HalfLifeMetrics.Data.Migrations
+namespace HalfLifeMetrics.Server.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -23,7 +23,9 @@ namespace HalfLifeMetrics.Data.Migrations
                     Metadata = table.Column<JsonDocument>(type: "jsonb", nullable: true),
                     GeoIpLocation_Latitude = table.Column<double>(type: "double precision", nullable: true),
                     GeoIpLocation_Longitude = table.Column<double>(type: "double precision", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    OpenedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ClosedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CloseReason = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {

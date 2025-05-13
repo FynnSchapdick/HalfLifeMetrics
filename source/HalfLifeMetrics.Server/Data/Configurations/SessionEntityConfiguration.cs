@@ -30,6 +30,6 @@ public sealed class SessionEntityConfiguration : IEntityTypeConfiguration<Sessio
         builder.HasIndex(session => session.IpAddress)
             .HasDatabaseName("IDX_IpV4");
 
-        builder.Property(x => x.CreatedAt).IsRequired();
+        builder.Property(x => x.OpenedAt).IsRequired();
     }
 }

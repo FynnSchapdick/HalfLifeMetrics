@@ -1,21 +1,19 @@
 ﻿using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
-using Prometheus;
+using HalfLifeMetrics.Server.Metric;
 using SteamId.Net;
 
 namespace HalfLifeMetrics.Server.MessageHandlers;
 
 public sealed partial class PlayerConnectedHandler(
     ILogger<PlayerConnectedHandler> logger,
-    Channel<PlayerConnected> channel) : IRconMessageHandler
+    Channel<PlayerConnected> channel,
+    MetricService metricService) : IRconMessageHandler
 {
     [GeneratedRegex("(\"(?<Name>.+?(?:<.*>)*)<(?<ClientID>\\d+?)><(?<SteamID>.+?)><(?<Team>.+?)?>\") connected, address \"(?<Host>.+?)\"", RegexOptions.Compiled)]
     public partial Regex PlayerConnectedRegex { get; }
     
-    public readonly Counter ConnectedPlayers = Metrics.CreateCounter(
-        "connected_players_total",
-        "Counts the number of connected players");
 
     public async Task HandleMessage(string message, CancellationToken cancellationToken)
     {
@@ -32,20 +30,13 @@ public sealed partial class PlayerConnectedHandler(
                 return;
             }
             
-            string name = match.Groups["Name"].Value;
-            SteamIdBase steamId = SteamIdBase.Parse(match.Groups["SteamID"].Value);
-            string ip = match.Groups["Host"].Value.Split(':')[0];
+            metricService.CurrentPlayers.Inc();
 
-            await channel.Writer.WriteAsync(
-                new PlayerConnected(
-                    name,
-                    steamId,
-                    IPAddress.Parse(ip))
-                , cancellationToken);
-
-            ConnectedPlayers.Inc();
+            PlayerConnected playerConnected = match.ToPlayerConnected();
             
-            logger.LogInformation("Player {Name} connected with SteamID {SteamId} from IP {Ip}", name, steamId, ip);
+            await channel.Writer.WriteAsync(playerConnected, cancellationToken);
+            
+            logger.LogInformation("Player {Name} connected with SteamID {SteamId} from IP {Ip}", playerConnected.Name, playerConnected.SteamId.ToSteamId3(), playerConnected.Ip.ToString());
         }
         catch (Exception ex)
         {
@@ -55,3 +46,13 @@ public sealed partial class PlayerConnectedHandler(
 }
 
 public sealed record PlayerConnected(string Name, SteamIdBase SteamId, IPAddress Ip);
+
+file static class Extensions
+{
+    public static PlayerConnected ToPlayerConnected(this Match match) => new
+    (
+        match.Groups["Name"].Value,
+        SteamId3.Parse(match.Groups["SteamID"].Value),
+        IPAddress.Parse(match.Groups["Host"].Value.Split(':')[0])
+    );
+}

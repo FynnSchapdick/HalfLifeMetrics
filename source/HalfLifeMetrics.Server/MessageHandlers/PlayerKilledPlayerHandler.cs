@@ -1,24 +1,14 @@
 ﻿using System.Text.RegularExpressions;
-using Prometheus;
+using HalfLifeMetrics.Server.Metric;
 
 namespace HalfLifeMetrics.Server.MessageHandlers;
 
-public sealed partial class PlayerKilledPlayerHandler(ILogger<PlayerKilledPlayerHandler> logger) : IRconMessageHandler
+public sealed partial class PlayerKilledPlayerHandler(
+    ILogger<PlayerKilledPlayerHandler> logger,
+    MetricService metricService) : IRconMessageHandler
 {
     [GeneratedRegex(@"""(?<AttackerName>[^<]+)<(?<AttackerId>\d+)><(?<AttackerSteamId>\[U:\d+:\d+\])><(?<AttackerTeam>[^>]+)>""\s+killed\s+""(?<VictimName>[^<]+)<(?<VictimId>\d+)><(?<VictimSteamId>\[U:\d+:\d+\])><(?<VictimTeam>[^>]+)>""\s+with\s+""(?<Weapon>[^""]+)""", RegexOptions.Compiled)]
     private static partial Regex PlayerKilledPlayer { get; }
-    
-    private readonly Counter _playerKillsCounter = Metrics.CreateCounter(
-        "player_kills_total",
-        "Counts the number of kills",
-        new CounterConfiguration { LabelNames = ["steam_id", "weapon_name", "steam_name"]}
-    );
-    
-    private readonly Counter _playerDeathsCounter = Metrics.CreateCounter(
-        "player_deaths_total",
-        "Counts the number of deaths",
-        new CounterConfiguration { LabelNames = ["steam_id", "weapon_name", "steam_name"]}
-    );
     
     public Task HandleMessage(string message, CancellationToken cancellationToken)
     {
@@ -40,11 +30,11 @@ public sealed partial class PlayerKilledPlayerHandler(ILogger<PlayerKilledPlayer
             string victimSteamId = match.Groups["VictimSteamId"].Value;
             string weapon = match.Groups["Weapon"].Value;
             
-            _playerKillsCounter
+            metricService.PlayerKills
                 .WithLabels(attackerSteamId, weapon, attackerName)
                 .Inc();
             
-            _playerDeathsCounter
+            metricService.PlayerDeaths
                 .WithLabels(victimSteamId, weapon, victimName)
                 .Inc();
             
@@ -52,7 +42,7 @@ public sealed partial class PlayerKilledPlayerHandler(ILogger<PlayerKilledPlayer
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling PlayerDisconnected message");
+            logger.LogError(ex, "Error handling PlayerKilledPlayer message");
         }
 
         return Task.CompletedTask;

@@ -9,7 +9,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "RconOptions__ReceivePort" : 50000,
-        "RconOptions__AllowedOrigins__0__IpEndPoint" : "185.250.249.26:28030",
+        "RconOptions__AllowedOrigins__0__IpEndPoint" : "84.200.133.26:28030",
         "RconOptions__AllowedOrigins__0__Password": "munich",
         "ConnectionStrings__Postgres" : "Host=postgres;Database=HalfSizeStatsDatabase;Username=postgres;Password=test"
       }
@@ -22,7 +22,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "RconOptions__ReceivePort" : 50000,
-        "RconOptions__AllowedOrigins__0__IpEndPoint" : "185.250.249.26:28030",
+        "RconOptions__AllowedOrigins__0__IpEndPoint" : "84.200.133.26:28030",
         "RconOptions__AllowedOrigins__0__Password": "munich",
         "ConnectionStrings__Postgres" : "Host=postgres;Database=HalfSizeStatsDatabase;Username=postgres;Password=test"
       }

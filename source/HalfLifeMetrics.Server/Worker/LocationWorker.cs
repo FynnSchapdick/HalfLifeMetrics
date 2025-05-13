@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Text.Json;
-using HalfLifeMetrics.Data;
 using HalfLifeMetrics.Server.Apis;
 using HalfLifeMetrics.Server.Data;
 using HalfLifeMetrics.Server.Data.Entities;

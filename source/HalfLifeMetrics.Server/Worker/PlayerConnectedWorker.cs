@@ -1,5 +1,4 @@
 ﻿using System.Threading.Channels;
-using HalfLifeMetrics.Data;
 using HalfLifeMetrics.Server.Data;
 using HalfLifeMetrics.Server.Data.Entities;
 using HalfLifeMetrics.Server.MessageHandlers;

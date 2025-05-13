@@ -7,5 +7,7 @@ public sealed class SessionEntity
     public required string Nickname { get; init; }
     public required string IpAddress { get; init; }
     public GeoIpLocationEntity? GeoIpLocation { get; set; }
-    public DateTimeOffset CreatedAt { get; private init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset OpenedAt { get; private init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? ClosedAt { get; set; }
+    public CloseReason? CloseReason { get; set; }
 }

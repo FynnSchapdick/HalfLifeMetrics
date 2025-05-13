@@ -7,6 +7,7 @@ public sealed class CommonMessageHandler(ILogger<RconListener> logger) : IRconMe
     public Task HandleMessage(string message, CancellationToken cancellationToken)
     {
         logger.LogInformation("Handling Message: {Message}", message);
+        
         return Task.CompletedTask;
     }
 }

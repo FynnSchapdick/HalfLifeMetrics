@@ -10,10 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace HalfLifeMetrics.Data.Migrations
+namespace HalfLifeMetrics.Server.Data.Migrations
 {
     [DbContext(typeof(HalfLifeStatsDbContext))]
-    [Migration("20250411154205_Initial")]
+    [Migration("20250513171431_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -21,18 +21,21 @@ namespace HalfLifeMetrics.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("HalfLifeMetrics.Data.Entities.SessionEntity", b =>
+            modelBuilder.Entity("HalfLifeMetrics.Server.Data.Entities.SessionEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<int?>("CloseReason")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("IpAddress")
@@ -42,6 +45,9 @@ namespace HalfLifeMetrics.Data.Migrations
                     b.Property<string>("Nickname")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SteamProfileUrl")
                         .IsRequired()
@@ -58,9 +64,9 @@ namespace HalfLifeMetrics.Data.Migrations
                     b.ToTable("Sessions");
                 });
 
-            modelBuilder.Entity("HalfLifeMetrics.Data.Entities.SessionEntity", b =>
+            modelBuilder.Entity("HalfLifeMetrics.Server.Data.Entities.SessionEntity", b =>
                 {
-                    b.OwnsOne("HalfLifeMetrics.Data.Entities.GeoIpLocationEntity", "GeoIpLocation", b1 =>
+                    b.OwnsOne("HalfLifeMetrics.Server.Data.Entities.GeoIpLocationEntity", "GeoIpLocation", b1 =>
                         {
                             b1.Property<Guid>("SessionEntityId")
                                 .HasColumnType("uuid");

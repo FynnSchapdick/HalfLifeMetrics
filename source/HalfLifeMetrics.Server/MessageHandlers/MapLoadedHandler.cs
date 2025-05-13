@@ -1,19 +1,15 @@
 ﻿using System.Text.RegularExpressions;
-using Prometheus;
+using HalfLifeMetrics.Server.Metric;
 
 namespace HalfLifeMetrics.Server.MessageHandlers;
 
-public sealed partial class MapLoadedHandler(ILogger<MapLoadedHandler> logger) : IRconMessageHandler
+public sealed partial class MapLoadedHandler(
+    ILogger<MapLoadedHandler> logger,
+    MetricService metricService) : IRconMessageHandler
 {
     [GeneratedRegex(@"Loading map \""(?<MapName>[^\""]+)\""", RegexOptions.Compiled)]
     public partial Regex MapLoadedRegex { get; }
     
-    private readonly Counter _mapLoadedCounter = Metrics.CreateCounter(
-        "map_loaded_total",
-        "Counts the number of maps been loaded",
-        new CounterConfiguration { LabelNames = ["map_name"]}
-    );
-
     public Task HandleMessage(string message, CancellationToken cancellationToken)
     {
         try
@@ -29,7 +25,7 @@ public sealed partial class MapLoadedHandler(ILogger<MapLoadedHandler> logger) :
             }
         
             string mapName = match.Groups["MapName"].Value;
-            _mapLoadedCounter
+            metricService.MapsLoaded
                 .WithLabels(mapName)
                 .Inc();
             

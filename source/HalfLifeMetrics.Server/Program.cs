@@ -2,10 +2,10 @@ using Refit;
 using System.Net;
 using Prometheus;
 using System.Threading.Channels;
-using HalfLifeMetrics.Data;
 using HalfLifeMetrics.Server.Apis;
 using HalfLifeMetrics.Server.Data;
 using HalfLifeMetrics.Server.MessageHandlers;
+using HalfLifeMetrics.Server.Metric;
 using HalfLifeMetrics.Server.Options;
 using HalfLifeMetrics.Server.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +20,7 @@ builder.Services.Configure<HostOptions>(x =>
 
 builder.Services.ConfigureOptions<RconOptionsConfiguration>();
 builder.Services.AddSingleton(Channel.CreateUnbounded<PlayerConnected>(new UnboundedChannelOptions()));
+builder.Services.AddSingleton(Channel.CreateUnbounded<PlayerDisconnected>(new UnboundedChannelOptions()));
 builder.Services.AddRefitClient<IIpApi>().ConfigureHttpClient(c =>
 {
     c.BaseAddress = new Uri("http://ip-api.com");
@@ -33,8 +34,10 @@ builder.Services.AddDbContextFactory<HalfLifeStatsDbContext>(options =>
         .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
 });
 
+builder.Services.AddSingleton<MetricService>();
 builder.Services.AddHostedService<RconListener>();
 builder.Services.AddHostedService<PlayerConnectedWorker>();
+builder.Services.AddHostedService<PlayerDisconnectedWorker>();
 builder.Services.AddHostedService<LocationWorker>();
 builder.Services.AddScoped<IRconMessageHandler, PlayerKilledPlayerHandler>();
 builder.Services.AddScoped<IRconMessageHandler, PlayerConnectedHandler>();
@@ -52,7 +55,7 @@ WebApplication app = builder.Build();
 app.MapMetrics();
 
 using IServiceScope scope = app.Services.CreateScope();
-using HalfLifeStatsDbContext? dbContext = scope.ServiceProvider.GetService<HalfLifeStatsDbContext>();
+using HalfLifeStatsDbContext? dbContext = scope.ServiceProvider.GetService<HalfLifeStatsDbContext>(); 
 dbContext?.Database.Migrate();
 
 await app.RunAsync();

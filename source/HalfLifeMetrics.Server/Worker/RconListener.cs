@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace HalfLifeMetrics.Server.Worker;
 
 public sealed class RconListener(
-    IServiceProvider serviceProvider,
+    IServiceScopeFactory serviceScopeFactory,
     IOptions<RconOptions> options,
     ILogger<RconListener> logger)
     : BackgroundService
@@ -40,7 +40,7 @@ public sealed class RconListener(
 
     private async Task OnMessageReceived(string message, CancellationToken cancellationToken)
     {
-        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+        using IServiceScope scope = serviceScopeFactory.CreateAsyncScope();
         IRconMessageHandler[] rconMessageHandlers = scope.ServiceProvider.GetRequiredService<IEnumerable<IRconMessageHandler>>().ToArray();
         await Task.WhenAll(rconMessageHandlers.Select(x => x.HandleMessage(message, cancellationToken)));
     }
