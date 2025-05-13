@@ -14,7 +14,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY source/HalfLifeMetrics.Server/HalfLifeStats.Server.csproj HalfLifeMetrics.Server/
+COPY source/HalfLifeMetrics.Server/HalfLifeMetrics.Server.csproj HalfLifeMetrics.Server/
 
 RUN dotnet restore HalfLifeMetrics.Server/HalfLifeMetrics.Server.csproj
 
