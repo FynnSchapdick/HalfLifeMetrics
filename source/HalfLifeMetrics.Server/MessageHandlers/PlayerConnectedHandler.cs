@@ -19,7 +19,7 @@ public sealed partial class PlayerConnectedHandler(
     {
         try
         {
-            if (message.Contains("connected") is false)
+            if (!message.Contains("connected"))
             {
                 return;
             }
