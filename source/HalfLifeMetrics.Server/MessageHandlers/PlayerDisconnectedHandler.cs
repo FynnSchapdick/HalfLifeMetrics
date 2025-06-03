@@ -12,21 +12,15 @@ public sealed partial class PlayerDisconnectedHandler(
     : IRconMessageHandler
 {
     
-    [GeneratedRegex("\"(?<Name>.+?)<(?<ClientID>\\d+)>\\<(?<SteamID>[^>]+)>\\<(?<Team>[^>]+)>\" disconnected \\(reason \"(?<Reason>.*?)\"\\)", RegexOptions.Compiled)]
+    [GeneratedRegex("\"(?<PlayerName>.+?)<(?<ClientID>\\d+)>\\<(?<PlayerSteamID3>[^>]+)>\\<(?<Team>[^>]+)>\" disconnected \\(reason \"(?<Reason>.*?)\"\\)", RegexOptions.Compiled)]
     public partial Regex PlayerDisconnectedRegex { get; }
     
     public async Task HandleMessage(string message, CancellationToken cancellationToken)
     {
         try
         {
-            if (!message.Contains("disconnected"))
+            if (!PlayerDisconnectedRegex.TryMatchPlayerDisconnected(message, out PlayerDisconnected? playerDisconnected) || playerDisconnected is null)
             {
-                return;
-            }
-            
-            if (PlayerDisconnectedRegex.Match(message) is not {Success: true} match)
-            {
-                logger.LogWarning("PlayerDisconnectedRegex did not match message: {Message}", message);
                 return;
             }
 
@@ -35,11 +29,13 @@ public sealed partial class PlayerDisconnectedHandler(
                 metricService.CurrentPlayers.Dec();
             }
 
-            PlayerDisconnected playerDisconnected = match.ToPlayerDisconnected();
-            
             await channel.Writer.WriteAsync(playerDisconnected, cancellationToken);
-            
-            logger.LogInformation("Player {Name} disconnected with SteamID {SteamId} with reason {Reason}", playerDisconnected.Name, playerDisconnected.SteamId.ToSteamId3(), playerDisconnected.Reason);
+
+            logger.LogInformation("Player '{Name}' disconnected with SteamID3 '{SteamId3}' with reason '{Reason}'", playerDisconnected.Name, playerDisconnected.SteamId.ToSteamId3(), playerDisconnected.Reason);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("PlayerDisconnectedHandler operation was canceled.");
         }
         catch (Exception ex)
         {
@@ -52,10 +48,22 @@ public sealed record PlayerDisconnected(string Name, SteamIdBase SteamId, string
 
 file static class Extensions
 {
-    public static PlayerDisconnected ToPlayerDisconnected(this Match match) => new
+    public static bool TryMatchPlayerDisconnected(this Regex regex, string message, out PlayerDisconnected? playerDisconnected)
+    {
+        playerDisconnected = null;
+        if (regex.Match(message) is not {Success: true} match)
+        {
+            return false;
+        }
+        
+        playerDisconnected = match.ToPlayerDisconnected();
+        return true;
+    }
+    
+    private static PlayerDisconnected ToPlayerDisconnected(this Match match) => new
     (
-        match.Groups["Name"].Value,
-        SteamId3.Parse(match.Groups["SteamID"].Value),
+        match.Groups["PlayerName"].Value,
+        SteamId3.Parse(match.Groups["PlayerSteamID3"].Value),
         match.Groups["Reason"].Value
     );
 }

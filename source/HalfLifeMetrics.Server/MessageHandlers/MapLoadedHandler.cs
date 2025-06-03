@@ -14,22 +14,16 @@ public sealed partial class MapLoadedHandler(
     {
         try
         {
-            if (!message.Contains("Loading map"))
+            if (!MapLoadedRegex.TryMatchMapLoaded(message, out MapLoaded? mapLoaded) || mapLoaded is null)
             {
                 return Task.CompletedTask;
             }
             
-            if (MapLoadedRegex.Match(message) is not { Success: true } match)
-            {
-                return Task.CompletedTask;
-            }
-        
-            string mapName = match.Groups["MapName"].Value;
             metricService.MapsLoaded
-                .WithLabels(mapName)
+                .WithLabels(mapLoaded.MapName)
                 .Inc();
             
-            logger.LogInformation("Map loaded: {MapName}", mapName);
+            logger.LogInformation("Map loaded: {MapName}", mapLoaded.MapName);
         }
         catch (Exception e)
         {
@@ -38,4 +32,23 @@ public sealed partial class MapLoadedHandler(
         
         return Task.CompletedTask;
     }
+}
+
+public sealed record MapLoaded(string MapName);
+
+file static class Extensions
+{
+    public static bool TryMatchMapLoaded(this Regex regex, string message, out MapLoaded? mapLoaded)
+    {
+        mapLoaded = null;
+        if (regex.Match(message) is not { Success: true } match)
+        {
+            return false;
+        }
+        
+        mapLoaded = match.ToMapLoaded();
+        return true;
+    }
+
+    private static MapLoaded ToMapLoaded(this Match match) => new(match.Groups["MapName"].Value);
 }

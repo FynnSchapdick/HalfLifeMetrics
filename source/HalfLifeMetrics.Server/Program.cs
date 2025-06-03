@@ -28,18 +28,18 @@ builder.Services.AddRefitClient<IIpApi>().ConfigureHttpClient(c =>
     c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
 });
 
-builder.Services.AddDbContextFactory<HalfLifeStatsDbContext>(options =>
-{
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
-        .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
-});
+// builder.Services.AddDbContextFactory<HalfLifeStatsDbContext>(options =>
+// {
+//     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+//         .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+// });
 
 builder.Services.AddSingleton<MetricService>();
 builder.Services.AddHostedService<RconListener>();
-builder.Services.AddHostedService<PlayerConnectedWorker>();
-builder.Services.AddHostedService<PlayerDisconnectedWorker>();
-builder.Services.AddHostedService<LocationWorker>();
-builder.Services.AddScoped<IRconMessageHandler, PlayerKilledPlayerHandler>();
+// builder.Services.AddHostedService<PlayerConnectedWorker>();
+// builder.Services.AddHostedService<PlayerDisconnectedWorker>();
+// builder.Services.AddHostedService<LocationWorker>();
+builder.Services.AddScoped<IRconMessageHandler, PlayerKilledVictimHandler>();
 builder.Services.AddScoped<IRconMessageHandler, PlayerConnectedHandler>();
 builder.Services.AddScoped<IRconMessageHandler, PlayerDisconnectedHandler>();
 builder.Services.AddScoped<IRconMessageHandler, PlayerCommitedSuicideHandler>();
@@ -54,8 +54,8 @@ WebApplication app = builder.Build();
 
 app.MapMetrics();
 
-using IServiceScope scope = app.Services.CreateScope();
-using HalfLifeStatsDbContext? dbContext = scope.ServiceProvider.GetService<HalfLifeStatsDbContext>(); 
-dbContext?.Database.Migrate();
+// using IServiceScope scope = app.Services.CreateScope();
+// using HalfLifeStatsDbContext? dbContext = scope.ServiceProvider.GetService<HalfLifeStatsDbContext>(); 
+// dbContext?.Database.Migrate();
 
 await app.RunAsync();

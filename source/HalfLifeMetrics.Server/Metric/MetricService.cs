@@ -11,7 +11,7 @@ public sealed class MetricService
     public readonly Counter CommitedSuicides = Metrics.CreateCounter(
         "hl_commited_suicides",
         "Counts the number of players who commited suicide",
-        new CounterConfiguration { LabelNames = ["steam_id64", "steam_name", "weapon"]}
+        new CounterConfiguration { LabelNames = ["player_steamid3", "steam_name", "weapon"]}
     );
 
     public readonly Counter MapsLoaded = Metrics.CreateCounter(
@@ -23,12 +23,12 @@ public sealed class MetricService
     public readonly Counter PlayerKills = Metrics.CreateCounter(
         "hl_player_kills",
         "Counts the number of kills",
-        new CounterConfiguration { LabelNames = ["steam_id", "weapon_name", "steam_name"]}
+        new CounterConfiguration { LabelNames = ["killer_steamid3", "weapon_name", "steam_name"]}
     );
     
     public readonly Counter PlayerDeaths = Metrics.CreateCounter(
         "hl_player_deaths",
         "Counts the number of deaths",
-        new CounterConfiguration { LabelNames = ["steam_id", "weapon_name", "steam_name"]}
+        new CounterConfiguration { LabelNames = ["victim_steamid3", "weapon_name", "steam_name"]}
     );
 }

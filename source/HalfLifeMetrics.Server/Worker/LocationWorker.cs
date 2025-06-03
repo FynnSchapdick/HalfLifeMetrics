@@ -86,7 +86,7 @@ public sealed class LocationWorker(
         }
         catch (HttpRequestException ex)
         {
-            logger.LogError(ex, "Fehler beim Abrufen von IP-Daten");
+            logger.LogError(ex, "Network error while get location data");
         }
         catch (Exception ex)
         {

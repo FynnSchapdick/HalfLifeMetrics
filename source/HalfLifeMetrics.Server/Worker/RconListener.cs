@@ -23,12 +23,6 @@ public sealed class RconListener(
             while (!stoppingToken.IsCancellationRequested)
             {
                 UdpReceiveResult result = await client.ReceiveAsync(stoppingToken);
-                if (!options.Value.AllowedOrigins.Select(x => x.IpEndPoint).Contains(result.RemoteEndPoint))
-                {
-                    logger.LogWarning("Received message from unauthorized IP: {Ip}", result.RemoteEndPoint);
-                    continue;
-                }
-
                 string message = Encoding.UTF8.GetString(result.Buffer);
                 _ = Task.Run(() => OnMessageReceived(message, stoppingToken), stoppingToken);
             }

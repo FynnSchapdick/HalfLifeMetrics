@@ -11,7 +11,7 @@ public sealed partial class PlayerConnectedHandler(
     Channel<PlayerConnected> channel,
     MetricService metricService) : IRconMessageHandler
 {
-    [GeneratedRegex("(\"(?<Name>.+?(?:<.*>)*)<(?<ClientID>\\d+?)><(?<SteamID>.+?)><(?<Team>.+?)?>\") connected, address \"(?<Host>.+?)\"", RegexOptions.Compiled)]
+    [GeneratedRegex("(\"(?<PlayerName>.+?(?:<.*>)*)<(?<ClientID>\\d+?)><(?<PlayerSteamID3>.+?)><(?<Team>.+?)?>\") connected, address \"(?<Host>.+?)\"", RegexOptions.Compiled)]
     public partial Regex PlayerConnectedRegex { get; }
     
 
@@ -19,28 +19,24 @@ public sealed partial class PlayerConnectedHandler(
     {
         try
         {
-            if (!message.Contains("connected"))
+            if (!PlayerConnectedRegex.TryMatchPlayerConnected(message, out PlayerConnected? playerConnected) || playerConnected is null)
             {
                 return;
             }
 
-            if (PlayerConnectedRegex.Match(message) is not {Success: true} match)
-            {
-                logger.LogWarning("PlayerConnectedRegex did not match message: {Message}", message);
-                return;
-            }
-            
             metricService.CurrentPlayers.Inc();
-
-            PlayerConnected playerConnected = match.ToPlayerConnected();
             
             await channel.Writer.WriteAsync(playerConnected, cancellationToken);
-            
-            logger.LogInformation("Player {Name} connected with SteamID {SteamId} from IP {Ip}", playerConnected.Name, playerConnected.SteamId.ToSteamId3(), playerConnected.Ip.ToString());
+                
+            logger.LogInformation("Player '{Name}' connected with SteamID3 '{SteamId3}' from IP '{Ip}'", playerConnected.Name, playerConnected.SteamId.ToSteamId3(), playerConnected.Ip.ToString());
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("PlayerConnectedHandler operation was canceled.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling PlayerConnected message");
+            logger.LogError(ex, "Unexpected error in PlayerConnectedHandler");
         }
     }
 }
@@ -49,10 +45,22 @@ public sealed record PlayerConnected(string Name, SteamIdBase SteamId, IPAddress
 
 file static class Extensions
 {
-    public static PlayerConnected ToPlayerConnected(this Match match) => new
+    public static bool TryMatchPlayerConnected(this Regex regex, string message, out PlayerConnected? playerConnected)
+    {
+        playerConnected = null;
+        if (regex.Match(message) is not {Success: true} match)
+        {
+            return false;
+        }
+        
+        playerConnected = match.ToPlayerConnected();
+        return true;
+    }
+
+    private static PlayerConnected ToPlayerConnected(this Match match) => new
     (
-        match.Groups["Name"].Value,
-        SteamId3.Parse(match.Groups["SteamID"].Value),
+        match.Groups["PlayerName"].Value,
+        SteamId3.Parse(match.Groups["PlayerSteamID3"].Value),
         IPAddress.Parse(match.Groups["Host"].Value.Split(':')[0])
     );
 }
